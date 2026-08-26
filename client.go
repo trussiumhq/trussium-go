@@ -83,6 +83,25 @@ type ChatCompletion struct {
 	Usage    TokenUsage   `json:"usage"`
 }
 
+type TranslationRequest struct {
+	Model          string   `json:"model"`
+	Input          []string `json:"input"`
+	SourceLanguage string   `json:"source_language,omitempty"`
+	TargetLanguage string   `json:"target_language"`
+}
+
+type TranslationResult struct {
+	Text           string `json:"text"`
+	SourceLanguage string `json:"source_language,omitempty"`
+	TargetLanguage string `json:"target_language"`
+}
+type TranslationResponse struct {
+	ID           string              `json:"id"`
+	Provider     string              `json:"provider"`
+	Model        string              `json:"model"`
+	Translations []TranslationResult `json:"translations"`
+}
+
 // Readiness is the runtime traffic-readiness response.
 type Readiness struct {
 	Status string `json:"status"`
@@ -122,6 +141,14 @@ func (client *Client) Capabilities(ctx context.Context) (Capabilities, error) {
 	var result Capabilities
 	if err := client.do(ctx, http.MethodGet, "/v1/capabilities", nil, "", &result); err != nil {
 		return Capabilities{}, err
+	}
+	return result, nil
+}
+
+func (client *Client) Translate(ctx context.Context, payload TranslationRequest, requestID string) (TranslationResponse, error) {
+	var result TranslationResponse
+	if err := client.do(ctx, http.MethodPost, "/v1/translations", payload, requestID, &result); err != nil {
+		return TranslationResponse{}, err
 	}
 	return result, nil
 }
