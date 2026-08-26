@@ -59,3 +59,22 @@ func TestReadinessCapabilitiesAndAPIError(t *testing.T) {
 		t.Fatalf("error=%v", err)
 	}
 }
+
+func TestTranslateForwardsRequest(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/translations" || r.Header.Get("X-Request-ID") != "translation-1" {
+			t.Fatal("unexpected translation request")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"id":"t-1","provider":"p","model":"m","translations":[{"text":"Bonjour","target_language":"fr"}]}`))
+	}))
+	defer server.Close()
+	client, err := NewClient(server.URL, server.Client())
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := client.Translate(context.Background(), TranslationRequest{Model: "m", Input: []string{"Hello"}, TargetLanguage: "fr"}, "translation-1")
+	if err != nil || result.Translations[0].Text != "Bonjour" {
+		t.Fatalf("unexpected translation: %#v %v", result, err)
+	}
+}
