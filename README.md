@@ -46,3 +46,8 @@ gofmt -w *.go
 go vet ./...
 go test ./...
 ```
+
+GitHub Actions runs formatting, vet, and race-enabled tests on pushes and pull
+requests against the minimum supported Go release and the latest release.
+Separate weekly workflows scan Go dependencies with `govulncheck` and analyze
+the source with CodeQL.
